@@ -13,12 +13,15 @@ from scipy.spatial.transform import Rotation
 
 CASES = {
     0: (0.0, 0.0, 0.0, 0.0, 0.0),
-    1: (-0.15, 0.5, 0.0, 0.0, 0.0),
-    2: (0.15, -0.3, 0.0, 0.0, 0.0),
-    3: (-0.50, 5.0, -10.0, 0.0, 0.0),
-    4: (0.0, 0.0, 0.0, 0.002, -0.0015),
-    5: (-0.25, 1.2, -0.5, 0.001, 0.0008),
-    6: (-1.8, 12.0, -25.0, 0.005, -0.004),
+    # Cases 1--6 are CAL_CASES_BC_BASIC's intended image-space stresses,
+    # rescaled from its 25 mm / 4.5 um sensor to Verif0's 50 mm / 4 um one.
+    # Tuple order: k1, k2, k3, p1, p2 (OpenCV Brown--Conrady convention).
+    1: (-0.759375, 12.814453125, 0.0, 0.0, 0.0),
+    2: (0.759375, -7.688671875, 0.0, 0.0, 0.0),
+    3: (-2.85659654019184, 144.615199847212, -1464.22889845302, 0.0, 0.0),
+    4: (0.0, 0.0, 0.0, 0.03125, -0.0234375),
+    5: (-1.72082277706521, 41.8159934826847, -88.205611252538, 0.00305924049256038, 0.0024473923940483),
+    6: (-9.1125, 307.546875, -3243.658447265625, 0.01125, -0.009),
 }
 ROOT = Path(__file__).resolve().parents[1]
 OUT_ROOT = ROOT / "out"
@@ -33,9 +36,11 @@ POSES = 128
 FOV_FRACTION = 1.0
 # These ranges deliberately constrain dot centres, not the complete plate, to the
 # two camera sensors.  The plate edge is allowed to leave the image.
+TRANS = 0.002
+ROT = 10.0
 MOTION_LIMITS = riley.CalTargetMotionLimits(
-    translation=((-0.001, 0.001), (-0.001, 0.001), (-0.002, 0.002)),
-    rotation_deg=((-7.0, 7.0), (-7.0, 7.0), (-7.0, 7.0)),
+    translation=((-TRANS, TRANS), (-0.8*TRANS, 0.8*TRANS), (-TRANS, TRANS)),
+    rotation_deg=((-2*ROT, 2*ROT), (-ROT, ROT), (-ROT, ROT)),
 )
 
 

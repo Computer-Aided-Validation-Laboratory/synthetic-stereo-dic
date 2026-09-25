@@ -80,20 +80,20 @@ def identify_case(case: int) -> None:
             ("fx_px", "fy_px", "fs_px", "cx_px", "cy_px"), riley_cam,
             (py_cam.fx, py_cam.fy, py_cam.fs, py_cam.cx, py_cam.cy)):
             rows.append((f"cam{cam_index}_{name}", riley_value, py_value, ""))
-    translation, rotation = stereo_ground_truth(case)
-    for name, riley_value, pyvale_value in zip(
-        ("tx_mm", "ty_mm", "tz_mm", "theta_deg", "phi_deg", "psi_deg"),
-        (*translation, *rotation), (*identified.translation, *identified.rotation),
-    ):
-        rows.append((name, riley_value, pyvale_value, ""))
         values = distortion(case)
         riley_distortion = (values["distortion_k1"], values["distortion_k2"],
                             values["distortion_p1"], values["distortion_p2"],
                             values["distortion_k3"])
         for name, riley_value, py_value in zip(
             ("k1", "k2", "p1", "p2", "k3"), riley_distortion,
-            identified.cam0.distortion if cam_index == 0 else identified.cam1.distortion):
+            py_cam.distortion):
             rows.append((f"cam{cam_index}_{name}", riley_value, py_value, ""))
+    translation, rotation = stereo_ground_truth(case)
+    for name, riley_value, pyvale_value in zip(
+        ("tx_mm", "ty_mm", "tz_mm", "theta_deg", "phi_deg", "psi_deg"),
+        (*translation, *rotation), (*identified.translation, *identified.rotation),
+    ):
+        rows.append((name, riley_value, pyvale_value, ""))
     with (out / "comparison.csv").open("w", newline="") as stream:
         writer = csv.writer(stream)
         writer.writerow((*rows[0], "pyvale_minus_riley", "opencv_minus_riley"))
