@@ -1,3 +1,28 @@
+# Directories
+temp/
+refs/
+notes/
+plans/
+out/
+guides/
+out*/
+pyvale*/
+examples/
+
+# Image/Simulation files
+*.tiff
+*.bmp
+*.png
+*.jpg
+*.csv
+*.e
+*.pdf
+
+# Exceptions
+!caltargets/*.pdf
+!caltargets/*.svg
+
+#-----------------------------------------------------------------------------
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
