@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import pyvale.calib as calib
 
-from verif_common import FOCAL, PIXEL_SIZE, distortion, images, output_dir
+from verif_common import FOCAL, PIXEL_SIZE, distortion, images, output_dir, stereo_ground_truth
 
 
 def detect_case(case: int):
@@ -80,6 +80,12 @@ def identify_case(case: int) -> None:
             ("fx_px", "fy_px", "fs_px", "cx_px", "cy_px"), riley_cam,
             (py_cam.fx, py_cam.fy, py_cam.fs, py_cam.cx, py_cam.cy)):
             rows.append((f"cam{cam_index}_{name}", riley_value, py_value, ""))
+    translation, rotation = stereo_ground_truth(case)
+    for name, riley_value, pyvale_value in zip(
+        ("tx_mm", "ty_mm", "tz_mm", "theta_deg", "phi_deg", "psi_deg"),
+        (*translation, *rotation), (*identified.translation, *identified.rotation),
+    ):
+        rows.append((name, riley_value, pyvale_value, ""))
         values = distortion(case)
         riley_distortion = (values["distortion_k1"], values["distortion_k2"],
                             values["distortion_p1"], values["distortion_p2"],

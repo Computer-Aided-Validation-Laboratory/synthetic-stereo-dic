@@ -4,9 +4,10 @@ import csv
 
 import cv2
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 from verif0_pyvale_identify_calibration import detect_case
-from verif_common import FOCAL, PIXEL_SIZE, distortion, output_dir
+from verif_common import FOCAL, PIXEL_SIZE, distortion, output_dir, stereo_ground_truth
 
 
 def identify_case(case: int) -> None:
@@ -80,6 +81,13 @@ def identify_case(case: int) -> None:
             rows.append((f"cam{camera}_{name}", value, "", identified[f"cam{camera}_{name}"]))
         for name, value in zip(("k1", "k2", "p1", "p2", "k3"), riley_distortion):
             rows.append((f"cam{camera}_{name}", value, "", coefficients[("k1", "k2", "p1", "p2", "k3").index(name)]))
+    translation, rotation = stereo_ground_truth(case)
+    opencv_rotation = Rotation.from_matrix(r).as_euler("xyz", degrees=True)
+    for name, riley_value, opencv_value in zip(
+        ("tx_mm", "ty_mm", "tz_mm", "theta_deg", "phi_deg", "psi_deg"),
+        (*translation, *rotation), (*t.reshape(-1), *opencv_rotation),
+    ):
+        rows.append((name, riley_value, "", opencv_value))
     comparison_path = out / "comparison.csv"
     existing = {}
     if comparison_path.exists():

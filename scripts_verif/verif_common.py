@@ -9,6 +9,7 @@ import shutil
 
 import numpy as np
 import riley
+from scipy.spatial.transform import Rotation
 
 CASES = {
     0: (0.0, 0.0, 0.0, 0.0, 0.0),
@@ -33,8 +34,8 @@ FOV_FRACTION = 1.0
 # These ranges deliberately constrain dot centres, not the complete plate, to the
 # two camera sensors.  The plate edge is allowed to leave the image.
 MOTION_LIMITS = riley.CalTargetMotionLimits(
-    translation=((-0.0005, 0.0005), (-0.0005, 0.0005), (-0.001, 0.001)),
-    rotation_deg=((-3.0, 3.0), (-3.0, 3.0), (-3.0, 3.0)),
+    translation=((-0.001, 0.001), (-0.001, 0.001), (-0.002, 0.002)),
+    rotation_deg=((-7.0, 7.0), (-7.0, 7.0), (-7.0, 7.0)),
 )
 
 
@@ -83,6 +84,19 @@ def cameras(case: int, coords: np.ndarray, center: np.ndarray) -> tuple[riley.Ca
     cam1.rot_world = (0.0, float(np.deg2rad(20.0)), 0.0)
 
     return cam0, cam1
+
+
+def stereo_ground_truth(case: int) -> tuple[np.ndarray, np.ndarray]:
+    """Return OpenCV camera-1-from-camera-0 translation (mm) and XYZ Euler angles."""
+    coords, _, _, center = target_geometry()
+    cam0, cam1 = cameras(case, coords, center)
+    rot0 = Rotation.from_euler("ZYX", np.asarray(cam0.rot_world)[::-1])
+    rot1 = Rotation.from_euler("ZYX", np.asarray(cam1.rot_world)[::-1])
+    opengl_to_opencv = np.diag((1.0, -1.0, -1.0))
+    rotation = opengl_to_opencv @ (rot1.inv() * rot0).as_matrix() @ opengl_to_opencv
+    translation = -rotation @ (opengl_to_opencv @ (
+        np.asarray(cam1.pos_world) - np.asarray(cam0.pos_world))) * 1.0e3
+    return translation, Rotation.from_matrix(rotation).as_euler("xyz", degrees=True)
 
 
 def motion(coords: np.ndarray, cam0: riley.Camera, cam1: riley.Camera) -> tuple[np.ndarray, ...]:
